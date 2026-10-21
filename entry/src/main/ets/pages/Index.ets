@@ -1,6 +1,7 @@
 import { PokemonDataSource, MyDataSource } from '../data/DataSource';
 import { Pokemon } from '../Model/Pokemon';
 import { extractLastNumber } from '../utils/unitFormatConverter';
+import { getPokemonTypeBackgroundColor, getPokemonTypeTextColor } from '../utils/pokemonTypeStyle';
 
 @Entry
 @Component
@@ -201,12 +202,12 @@ struct Index {
     this.dataSet.setData(query.length === 0 ? this.pokeList : this.filteredPokemon);
   }
 
-  private openPokemon(item: Pokemon): void {
+  private async openPokemon(item: Pokemon): Promise<void> {
     const id = extractLastNumber(item.url);
     this.isOpeningPokemon = true;
     this.clearTypeTimers();
     try {
-      this.getUIContext().getRouter().pushUrl({
+      await this.getUIContext().getRouter().pushUrl({
         url: 'pages/PokeDetail',
         params: { pokeName: item.name, pokeId: id, pokeImage: item.image }
       });
@@ -234,12 +235,29 @@ struct Index {
             .fontColor('#0F0026')
             .maxLines(1)
             .textOverflow({ overflow: TextOverflow.Ellipsis });
-          Text(this.typeList[extractLastNumber(item.url)] === undefined ? 'Types loading' :
-            this.typeList[extractLastNumber(item.url)].join(' · ') || 'Types unavailable')
-            .fontSize(13)
-            .fontColor('#6024B5')
-            .maxLines(1)
-            .textOverflow({ overflow: TextOverflow.Ellipsis });
+          if (this.typeList[extractLastNumber(item.url)] === undefined) {
+            Text('Types loading')
+              .fontSize(13)
+              .fontColor('#6024B5');
+          } else if (this.typeList[extractLastNumber(item.url)].length === 0) {
+            Text('Types unavailable')
+              .fontSize(13)
+              .fontColor('#6024B5');
+          } else {
+            Flex({ wrap: FlexWrap.Wrap }) {
+              ForEach(this.typeList[extractLastNumber(item.url)], (typeName: string) => {
+                Text(typeName)
+                  .fontSize(12)
+                  .fontWeight(700)
+                  .fontColor(getPokemonTypeTextColor(typeName))
+                  .padding({ left: 8, right: 8, top: 3, bottom: 3 })
+                  .backgroundColor(getPokemonTypeBackgroundColor(typeName))
+                  .borderRadius(10)
+                  .margin({ right: 6, bottom: 4 });
+              }, (typeName: string) => typeName);
+            }
+            .width('100%');
+          }
         }
         .layoutWeight(1);
         Text(`#${extractLastNumber(item.url)}`)

@@ -47,10 +47,10 @@ struct AbilityDetail {
     }
   }
 
-  private openPokemon(item: Pokemon): void {
+  private async openPokemon(item: Pokemon): Promise<void> {
     const id = extractLastNumber(item.url);
     try {
-      this.getUIContext().getRouter().pushUrl({
+      await this.getUIContext().getRouter().pushUrl({
         url: 'pages/PokeDetail',
         params: {
           pokeName: item.name,
@@ -77,8 +77,7 @@ struct AbilityDetail {
         .focusable(true)
         .accessibilityText('Home')
         .onClick(() => {
-          this.getUIContext().getRouter().clear();
-          this.getUIContext().getRouter().pushUrl({ url: 'pages/Index' });
+          this.getUIContext().getRouter().back({ url: 'pages/Index' });
         });
     }
     .width('100%')

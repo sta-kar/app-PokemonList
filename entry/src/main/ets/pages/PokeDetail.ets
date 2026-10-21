@@ -1,6 +1,7 @@
 import { PokemonDataSource } from '../data/DataSource';
 import { AbilityInfo, PokeInformation, PokeType } from '../Model/Pokemon';
 import { EvolutionChain, EvolutionData, Species } from '../Model/Revolution';
+import { getPokemonTypeBackgroundColor, getPokemonTypeTextColor } from '../utils/pokemonTypeStyle';
 import { extractLastNumber, heightConverter, weightConverter } from '../utils/unitFormatConverter';
 import { HttpErrorComponent, LoadComponent } from './Index';
 
@@ -96,6 +97,44 @@ struct PokeDetail {
     return result;
   }
 
+  private async openType(item: PokeType): Promise<void> {
+    try {
+      await this.getUIContext().getRouter().pushUrl({
+        url: 'pages/TypeDetail',
+        params: { url: item.url, typeName: item.name }
+      });
+    } catch (error) {
+      console.error('Could not open type details:', error);
+    }
+  }
+
+  private async openAbility(item: AbilityInfo): Promise<void> {
+    try {
+      await this.getUIContext().getRouter().pushUrl({
+        url: 'pages/AbilityDetail',
+        params: { url: item.ability.url, abilityName: item.ability.name }
+      });
+    } catch (error) {
+      console.error('Could not open ability details:', error);
+    }
+  }
+
+  private async openEvolution(item: Species): Promise<void> {
+    const id = extractLastNumber(item.url);
+    try {
+      await this.getUIContext().getRouter().pushUrl({
+        url: 'pages/PokeDetail',
+        params: {
+          pokeName: item.name,
+          pokeId: id,
+          pokeImage: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`
+        }
+      });
+    } catch (error) {
+      console.error('Could not open evolution details:', error);
+    }
+  }
+
   @Builder
   Header() {
     Row() {
@@ -110,8 +149,7 @@ struct PokeDetail {
         .focusable(true)
         .accessibilityText('Home')
         .onClick(() => {
-          this.getUIContext().getRouter().clear();
-          this.getUIContext().getRouter().pushUrl({ url: 'pages/Index' });
+          this.getUIContext().getRouter().back({ url: 'pages/Index' });
         });
     }
     .width('100%')
@@ -125,16 +163,11 @@ struct PokeDetail {
         Text(item.name)
           .fontSize(14)
           .fontWeight(700)
-          .fontColor('#6024B5')
+          .fontColor(getPokemonTypeTextColor(item.name))
           .padding({ left: 12, right: 12, top: 8, bottom: 8 })
-          .backgroundColor('#F8F3FF')
+          .backgroundColor(getPokemonTypeBackgroundColor(item.name))
           .borderRadius(12)
-          .onClick(() => {
-            this.getUIContext().getRouter().pushUrl({
-              url: 'pages/TypeDetail',
-              params: { url: item.url, typeName: item.name }
-            });
-          });
+          .onClick(() => this.openType(item));
       }, (item: PokeType) => item.url);
     }
   }
@@ -248,12 +281,7 @@ struct PokeDetail {
                 .padding(12)
                 .backgroundColor('#F8F3FF')
                 .borderRadius(12)
-                .onClick(() => {
-                  this.getUIContext().getRouter().pushUrl({
-                    url: 'pages/AbilityDetail',
-                    params: { url: item.ability.url, abilityName: item.ability.name }
-                  });
-                });
+                .onClick(() => this.openAbility(item));
               }, (item: AbilityInfo) => item.ability.url);
             }
             .width('100%')
@@ -286,17 +314,7 @@ struct PokeDetail {
                     ListItem() {
                       this.EvolutionItem(item);
                     }
-                    .onClick(() => {
-                      const id = extractLastNumber(item.url);
-                      this.getUIContext().getRouter().pushUrl({
-                        url: 'pages/PokeDetail',
-                        params: {
-                          pokeName: item.name,
-                          pokeId: id,
-                          pokeImage: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`
-                        }
-                      });
-                    });
+                    .onClick(() => this.openEvolution(item));
                   }, (item: Species) => item.url);
                 }
                 .listDirection(Axis.Horizontal)

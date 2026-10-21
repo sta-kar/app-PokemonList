@@ -1,5 +1,6 @@
 import { PokemonDataSource } from '../data/DataSource';
 import { DamageRelations, TypeInfo } from '../Model/Type';
+import { getPokemonTypeBackgroundColor, getPokemonTypeTextColor } from '../utils/pokemonTypeStyle';
 import { HttpErrorComponent, LoadComponent } from './Index';
 
 interface RouterParams {
@@ -45,6 +46,17 @@ struct TypeDetail {
     }
   }
 
+  private async openType(item: TypeInfo): Promise<void> {
+    try {
+      await this.getUIContext().getRouter().replaceUrl({
+        url: 'pages/TypeDetail',
+        params: { url: item.url, typeName: item.name }
+      });
+    } catch (error) {
+      console.error('Could not open type details:', error);
+    }
+  }
+
   @Builder
   Header() {
     Row() {
@@ -59,8 +71,7 @@ struct TypeDetail {
         .focusable(true)
         .accessibilityText('Home')
         .onClick(() => {
-          this.getUIContext().getRouter().clear();
-          this.getUIContext().getRouter().pushUrl({ url: 'pages/Index' });
+          this.getUIContext().getRouter().back({ url: 'pages/Index' });
         });
     }
     .width('100%')
@@ -72,17 +83,12 @@ struct TypeDetail {
     Text(item.name)
       .fontSize(14)
       .fontWeight(700)
-      .fontColor('#6024B5')
+      .fontColor(getPokemonTypeTextColor(item.name))
       .padding({ left: 14, right: 14, top: 9, bottom: 9 })
-      .backgroundColor('#F8F3FF')
+      .backgroundColor(getPokemonTypeBackgroundColor(item.name))
       .borderRadius(12)
-      .margin({ right: 8 })
-      .onClick(() => {
-        this.getUIContext().getRouter().replaceUrl({
-          url: 'pages/TypeDetail',
-          params: { url: item.url, typeName: item.name }
-        });
-      });
+      .margin({ right: 8, bottom: 8 })
+      .onClick(() => this.openType(item));
   }
 
   @Builder
@@ -97,15 +103,12 @@ struct TypeDetail {
           .fontSize(14)
           .fontColor('#5E5470');
       } else {
-        List() {
+        Flex({ wrap: FlexWrap.Wrap }) {
           ForEach(items, (item: TypeInfo) => {
-            ListItem() {
-              this.TypeItem(item);
-            }
+            this.TypeItem(item);
           }, (item: TypeInfo) => item.url);
         }
-        .listDirection(Axis.Horizontal)
-        .height(42);
+        .width('100%');
       }
     }
     .width('100%')
